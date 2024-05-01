@@ -93,6 +93,7 @@ public class UDPManager : MonoBehaviour
             int value;
             if (int.TryParse(parts[1], out value))
             {
+                Debug.Log("UDP message recived: " + sensorID + " "+ value);
                 switch(sensorID){
                     case "potentiometer":
                     potentiometerValue = value;
@@ -100,7 +101,7 @@ public class UDPManager : MonoBehaviour
                     case "potentiometer1":
                     potentiometerValue1 = value;
                     break;
-                    case "key":
+                    case "key0":
                     key = value;
                     break;
                     case "key1":
