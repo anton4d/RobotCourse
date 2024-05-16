@@ -8,14 +8,14 @@ hw_timer_t *timer = NULL;
 /* WiFi */
 // Network name (SSID) and password (WPA)
 constexpr char SSID_NAME[] = "Raspi";
-constexpr char SSID_PASSWORD[] = "Fordgt40";
+constexpr char SSID_PASSWORD[] = "Raspi123";
 
 /* UDP */
 // Udp object
 WiFiUDP Udp;
 
 // Receiver IP-address and port
-IPAddress RECEIVER_IP_ADDRESS(192, 168, 131, 147);
+IPAddress RECEIVER_IP_ADDRESS(192, 168, 131, 70);
 constexpr int RECEIVER_PORT = 50195;
 constexpr int LOCAL_PORT = 3002;
 
@@ -27,6 +27,9 @@ char UDPPacketBuffer[255];
 
 // create servo object to control a servo
 Servo myservo;
+
+constexpr int ACTUATOR_CYCLE_DELAY = 100;
+long lastActuatorCycle = 0;
 
 // Used pins
 constexpr byte POTENTIOMETER1_PIN = 35;
@@ -45,6 +48,7 @@ const int redLEDPin = 18;
 // Define the combination
 const int correctCombination[4] = {5, 5, 5, 5};
 int enteredCombination[4] = {0, 0, 0, 0};
+int combinationLength = 4;
 int currentIndex = 0;
 
 // Define the state for indicating success or failure
@@ -66,6 +70,8 @@ void LockFunction(bool);
 void TimerDebug();
 void sendUDPDataString();
 void receiveUDPMessage();
+void checkifCodeIsCorrect();
+void inputcodevalue(int value);
 
 // Declare the Task Functions
 void TaskDoor(void *pvParameters);
@@ -103,6 +109,7 @@ void setup()
   // Begin UDP
   Udp.begin(LOCAL_PORT);
   Serial.println("UDP Begun");
+  Serial.println(WiFi.localIP());
 
   // Timer Setup
   timer = timerBegin(0, 80, true);
@@ -121,7 +128,7 @@ void setup()
   xTaskCreate(
       TaskDoorHandle,
       "Doorhandle",
-      1000,
+      2000,
       NULL,
       1,
       NULL);
@@ -153,6 +160,13 @@ void setup()
 
 void loop()
 {
+  if ((millis() - lastActuatorCycle) > ACTUATOR_CYCLE_DELAY)
+  {
+    lastActuatorCycle = millis();
+
+    // Receive LED state
+    receiveUDPMessage();
+  }
   // Check if any button is pressed
   if (TimerStop)
   {
@@ -177,19 +191,8 @@ void loop()
       UDPDataString = "key" + String(i) + "|1";
       sendUDPDataString();
       // Button is pressed, register the digit
-      enteredCombination[currentIndex] = i + 1; // Add 1 to convert index to digit
-      currentIndex++;
-      // Serial.println(buttonPins[i]);
-      // Serial.println(currentIndex);
-      // Turn on the yellow LED momentarily
-      digitalWrite(yellowLEDPin, HIGH);
-      delay(300);
-      digitalWrite(yellowLEDPin, LOW);
-      for (int j = 0; j <= 3; j++)
-      {
-        Serial.println(enteredCombination[j]);
-      }
-      Serial.println("-----------------");
+      inputcodevalue(i+1);
+      
 
       // Wait for the button to be released
       while (digitalRead(buttonPins[i]) == LOW)
@@ -199,49 +202,77 @@ void loop()
       UDPDataString = "key" + String(i) + "|0";
       sendUDPDataString();
 
-      // Check if the entered combination length is 4
-      if (currentIndex == 4)
+      checkifCodeIsCorrect();
+    }
+  }
+}
+
+//Code for inputing the value into the code array
+void inputcodevalue(int value)
+{
+  enteredCombination[currentIndex] = value; // Add 1 to convert index to digit
+  currentIndex ++;
+  // Serial.println(buttonPins[i]);
+  // Serial.println(currentIndex);
+  // Turn on the yellow LED momentarily
+  digitalWrite(yellowLEDPin, HIGH);
+  delay(300);
+  digitalWrite(yellowLEDPin, LOW);
+  Serial.println("-----------------");
+  for (int j = 0; j <= combinationLength-1; j++)
+  {
+    Serial.println(enteredCombination[j]);
+  }
+  Serial.println("-----------------");
+}
+
+//Check if the inputted code array is == to the correct array
+void checkifCodeIsCorrect()
+{
+  if (currentIndex == combinationLength)
+  {
+    // Check if the combination is correct
+    success = true;
+    for (int j = 0; j < 4; j++)
+    {
+      if (enteredCombination[j] != correctCombination[j])
       {
-        // Check if the combination is correct
-        success = true;
-        for (int j = 0; j < 4; j++)
-        {
-          if (enteredCombination[j] != correctCombination[j])
-          {
-            success = false;
-            break;
-          }
-        }
-
-        // Light up the appropriate LED based on the success
-        if (success && LastLockState == false)
-        {
-          digitalWrite(greenLEDPin, HIGH);
-          LockFunction(true);                                     // call the lockfuntion to upen the lock
-          timerAlarmWrite(timer, timerDuration * 1000000, false); // Set the Timer amount
-          timerRestart(timer);                                    // Timer Restart
-          timerAlarmEnable(timer);                                // Start the timer
-        }
-        else if (success)
-        {
-          digitalWrite(yellowLEDPin, HIGH);
-          delay(50);
-          digitalWrite(yellowLEDPin, LOW);
-          delay(50);
-          digitalWrite(greenLEDPin, HIGH);
-        }
-        else
-        {
-          digitalWrite(redLEDPin, HIGH);
-        }
-
-        // Reset the combination and index for next attempt
-        currentIndex = 0;
-        delay(2000); // Wait for 2 seconds before resetting
-        digitalWrite(greenLEDPin, LOW);
-        digitalWrite(redLEDPin, LOW);
+        success = false;
+        break;
       }
     }
+
+    // Light up the appropriate LED based on the success
+    if (success && LastLockState == false)
+    {
+      digitalWrite(greenLEDPin, HIGH);
+      LockFunction(true);                                     // call the lockfuntion to upen the lock
+      timerAlarmWrite(timer, timerDuration * 1000000, false); // Set the Timer amount
+      timerRestart(timer);                                    // Timer Restart
+      timerAlarmEnable(timer);                                // Start the timer
+    }
+    else if (success)
+    {
+      digitalWrite(yellowLEDPin, HIGH);
+      delay(300);
+      digitalWrite(yellowLEDPin, LOW);
+      delay(50);
+      digitalWrite(greenLEDPin, HIGH);
+    }
+    else
+    {
+      digitalWrite(redLEDPin, HIGH);
+    }
+
+    // Reset the combination and index for next attempt
+    currentIndex = 0;
+    for (int x = 0; x <= combinationLength -1 ; x++)
+    {
+      enteredCombination[x] = 0;
+    }
+    delay(2000); // Wait for 2 seconds before resetting
+    digitalWrite(greenLEDPin, LOW);
+    digitalWrite(redLEDPin, LOW);
   }
 }
 
@@ -254,6 +285,7 @@ void TaskDoor(void *pvParameters)
     int potentiometerValue;
 
     potentiometerValue = analogRead(POTENTIOMETER_PIN);
+
     if (abs(potentiometerValue - lastValue) > 50)
     {
       UDPDataString = "potentiometer|" + String(potentiometerValue);
@@ -288,18 +320,16 @@ void TaskDoorHandle(void *PvParameters)
   while (true)
   {
     // potentiometer value
-    int lastValue;
     int potentiometerValue;
     potentiometerValue = analogRead(POTENTIOMETER1_PIN);
-
     if (abs(potentiometerValue - lastValue) > 50)
     {
-      UDPDataString = "potentiometer|" + String(potentiometerValue);
+      UDPDataString = "potentiometer1|" + String(potentiometerValue);
       sendUDPDataString();
       lastValue = potentiometerValue;
     }
 
-    if (potentiometerValue >= 50 == LastDoorHandleState == true)
+    if (potentiometerValue >= 50 && LastDoorHandleState == true)
     {
     }
     else if (potentiometerValue >= 50)
@@ -313,7 +343,6 @@ void TaskDoorHandle(void *PvParameters)
       LastDoorHandleState = false;
     }
     delay(200);
-    lastValue = potentiometerValue;
   }
 }
 
@@ -325,6 +354,8 @@ void LockFunction(bool LockState)
     LastLockState = LockState;
     pos = 90;
     myservo.write(pos);
+    UDPDataString = "Servomotor|" + String(90);
+    sendUDPDataString();
     Serial.println("Lock is open");
   }
   else if (LockState == false)
@@ -333,6 +364,8 @@ void LockFunction(bool LockState)
 
     pos = 170;
     myservo.write(pos);
+    UDPDataString = "Servomotor|" + String(0);
+    sendUDPDataString();
     Serial.println("Lock is closed");
   }
 }
@@ -344,7 +377,6 @@ void TimerDebug()
 
 /* UDP */
 // Send current UDPDataString to Unity
-
 void sendUDPDataString()
 {
   Udp.beginPacket(RECEIVER_IP_ADDRESS, RECEIVER_PORT);
@@ -384,6 +416,13 @@ void receiveUDPMessage()
     if (part != NULL)
     {
       value = atoi(part); // Convert string to integer
+    }
+    Serial.println("gotten udp message with id " + String(actuatorID) + " with value " + String(value));
+
+    if (String(actuatorID) == "Button")
+    {
+      inputcodevalue(value);
+      checkifCodeIsCorrect();
     }
   }
 }

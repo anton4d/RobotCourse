@@ -9,6 +9,7 @@ public class Potentiometer : MonoBehaviour
     [SerializeField] private float minRotationDegree = 0f;
     [SerializeField] private float maxRotationDegree = 270f;
 
+    private float lastvalue;
     private float initialRotationX;
     private float initialRotationY;
     private float initialRotationZ;
@@ -27,21 +28,54 @@ public class Potentiometer : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
     void Update()
-    {  
-        if(Number == 0){
-            RotateObject(UDPManager.Instance.potentiometerValue);
-        }else{
-            RotateObject(UDPManager.Instance.potentiometerValue1);
+    {
+        if (Number == 0)
+        {
+            float value = UDPManager.Instance.potentiometerValue;
+            if (value != lastvalue)
+            {
+                lastvalue = value;
+                Debug.Log("current value:"+value + " last value:"+ lastvalue);
+                RotateObjecty(value);
+                
+            }
+            if (Input.GetKeyDown(KeyCode.RightArrow))
+            {
+                RotateObjecty(800);
+            }
+            if (Input.GetKeyUp(KeyCode.RightArrow))
+            {
+                RotateObjecty(0);
+            }
+
+
         }
-        
+        else
+        {
+            float value = UDPManager.Instance.potentiometerValue1;
+            if (value != lastvalue)
+            {
+                Debug.Log("current value:"+value + " last value:"+ lastvalue);
+                RotateObjectz(value);
+                lastvalue = value;
+            }
+            if (Input.GetKeyDown(KeyCode.LeftArrow))
+            {
+                RotateObjectz(800);
+            }
+            if (Input.GetKeyUp(KeyCode.LeftArrow))
+            {
+                RotateObjectz(0);
+            }
+        }
     }
 
-    private void RotateObject(float value)
+    private void RotateObjecty(float value)
     {
         float mappedRotation = MapValue(value, minInputValue, maxInputValue, minRotationDegree, maxRotationDegree);
 
@@ -49,6 +83,17 @@ public class Potentiometer : MonoBehaviour
 
         transform.localRotation = Quaternion.Euler(rotationVector);
     }
+
+    private void RotateObjectz(float value)
+    {
+        float mappedRotation = MapValue(value, minInputValue, maxInputValue, minRotationDegree, maxRotationDegree);
+
+        Vector3 rotationVector = new Vector3(initialRotationX, initialRotationY, mappedRotation);
+
+        transform.localRotation = Quaternion.Euler(rotationVector);
+    }
+
+
 
     private float MapValue(float value, float fromMin, float fromMax, float toMin, float toMax)
     {

@@ -16,6 +16,9 @@ public class UDPManager : MonoBehaviour
     [Header("UDP Settings")]
     [SerializeField] private int UDPPort = 50195;
     [SerializeField] private bool displayUDPMessages = false;
+    [SerializeField] public string ESP32IP = "10.126.128.155";
+
+    [SerializeField] public int ESP32Port = 3002;
     private UdpClient udpClient;
     private IPEndPoint endPoint;
 
@@ -64,12 +67,12 @@ public class UDPManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
-            SendUDPMessage("LED|1", "10.126.128.155", 3002);
+            SendUDPMessage("LED|1", ESP32IP, ESP32Port);
         }
 
         if (Input.GetKeyDown(KeyCode.DownArrow))
         {
-            SendUDPMessage("LED|0", "10.126.128.155", 3002);
+            SendUDPMessage("LED|0", ESP32IP, ESP32Port);
         }
     }
 
@@ -97,39 +100,51 @@ public class UDPManager : MonoBehaviour
                 switch(sensorID){
                     case "potentiometer":
                     potentiometerValue = value;
+                    Debug.Log("update Potentiometer");
                     break;
                     case "potentiometer1":
                     potentiometerValue1 = value;
+                    Debug.Log("update Potentiometer1");
                     break;
                     case "key0":
                     key = value;
+                    Debug.Log("update key");
                     break;
                     case "key1":
                     key1 = value;
+                    Debug.Log("update key1");
                     break;
                     case "key2":
                     key2 = value;
+                    Debug.Log("update key2");
                     break;
                     case "key3":
                     key3 = value;
+                    Debug.Log("update key3");
                     break;
                     case "key4":
                     key4 = value;
+                    Debug.Log("update key4");
                     break;
                     case "key5":
                     key5 = value;
+                    Debug.Log("update key5");
                     break;
                     case "key6":
                     key6 = value;
+                    Debug.Log("update key6");
                     break;
                     case "key7":
                     key7 = value;
+                    Debug.Log("update key7");
                     break;
                     case "key8":
                     key8 = value;
+                    Debug.Log("update key8");
                     break;
                     case "Servomotor":
                     servomotor = value;
+                    Debug.Log("update Servomotor");
                     break;
                 }
                 

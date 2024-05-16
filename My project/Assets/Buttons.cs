@@ -9,13 +9,12 @@ public class Buttons : MonoBehaviour
     private float initialZ;
     [SerializeField] private int Number = 0;
     [SerializeField] private int down = 2;
-    [SerializeField] private bool test = false;
     private int laststate = 0;
     private Vector3 pos1;
     private Vector3 pos2;
     public float speed = 1.0f;
 
-    private void move(int value)
+    private void moveudp(int value)
     {
         if (value != laststate)
         {
@@ -31,16 +30,26 @@ public class Buttons : MonoBehaviour
             }
         }
 
+    }
 
+    private void ButtonPress(int value)
+    {
+        int key = Number + 1;
+        if (value == 0)
+        {
+            UDPManager.Instance.SendUDPMessage("Button|" + key, UDPManager.Instance.ESP32IP, UDPManager.Instance.ESP32Port);
+            transform.position = Vector3.Lerp(pos1, pos2, 0);
+        }
+        if (value == 1)
+        {
+            transform.position = Vector3.Lerp(pos1, pos2, 1);
+        }
     }
     private void Awake()
     {
         initialX = transform.position.x;
-        Debug.Log(initialX);
         initialY = transform.position.y;
-        Debug.Log(initialY);
         initialZ = transform.position.z;
-        Debug.Log(initialZ);
 
         pos1 = new Vector3(initialX, initialY, initialZ);
         pos2 = new Vector3(initialX, initialY - down, initialZ);
@@ -56,135 +65,110 @@ public class Buttons : MonoBehaviour
 
     void Update()
     {
-        if (test)
+
+        switch (Number)
         {
-            switch (Number)
-            {
-                case 0:
-                    if (Input.GetKeyDown(KeyCode.Alpha1))
-                    {
-                        move(1);
-                    }
-                    if (Input.GetKeyUp(KeyCode.Alpha1))
-                    {
-                        move(0);
-                    }
-                    break;
-                case 1:
-                    if (Input.GetKeyDown(KeyCode.Alpha2))
-                    {
-                        move(1);
-                    }
-                    if (Input.GetKeyUp(KeyCode.Alpha2))
-                    {
-                        move(0);
-                    }
-                    break;
-                case 2:
-                    if (Input.GetKeyDown(KeyCode.Alpha3))
-                    {
-                        move(1);
-                    }
-                    if (Input.GetKeyUp(KeyCode.Alpha3))
-                    {
-                        move(0);
-                    }
-                    break;
-                case 3:
-                    if (Input.GetKeyDown(KeyCode.Alpha4))
-                    {
-                        move(1);
-                    }
-                    if (Input.GetKeyUp(KeyCode.Alpha4))
-                    {
-                        move(0);
-                    }
-                    break;
-                case 4:
-                    if (Input.GetKeyDown(KeyCode.Alpha5))
-                    {
-                        move(1);
-                    }
-                    if (Input.GetKeyUp(KeyCode.Alpha5))
-                    {
-                        move(0);
-                    }
-                    break;
-                case 5:
-                    if (Input.GetKeyDown(KeyCode.Alpha6))
-                    {
-                        move(1);
-                    }
-                    if (Input.GetKeyUp(KeyCode.Alpha6))
-                    {
-                        move(0);
-                    }
-                    break;
-                case 6:
-                    if (Input.GetKeyDown(KeyCode.Alpha7))
-                    {
-                        move(1);
-                    }
-                    if (Input.GetKeyUp(KeyCode.Alpha7))
-                    {
-                        move(0);
-                    }
-                    break;
-                case 7:
-                    if (Input.GetKeyDown(KeyCode.Alpha8))
-                    {
-                        move(1);
-                    }
-                    if (Input.GetKeyUp(KeyCode.Alpha8))
-                    {
-                        move(0);
-                    }
-                    break;
-                case 8:
-                    if (Input.GetKeyDown(KeyCode.Alpha9))
-                    {
-                        move(1);
-                    }
-                    if (Input.GetKeyUp(KeyCode.Alpha9))
-                    {
-                        move(0);
-                    }
-                    break;
-            }
+            case 0:
+                moveudp(UDPManager.Instance.key);
+                if (Input.GetKeyDown(KeyCode.Alpha1))
+                {
+                    ButtonPress(1);
+                }
+                if (Input.GetKeyUp(KeyCode.Alpha1))
+                {
+                    ButtonPress(0);
+                }
+                break;
+            case 1:
+                moveudp(UDPManager.Instance.key1);
+                if (Input.GetKeyDown(KeyCode.Alpha2))
+                {
+                    ButtonPress(1);
+                }
+                if (Input.GetKeyUp(KeyCode.Alpha2))
+                {
+                    ButtonPress(0);
+                }
+                break;
+            case 2:
+                moveudp(UDPManager.Instance.key2);
+                if (Input.GetKeyDown(KeyCode.Alpha3))
+                {
+                    ButtonPress(1);
+                }
+                if (Input.GetKeyUp(KeyCode.Alpha3))
+                {
+                    ButtonPress(0);
+                }
+                break;
+            case 3:
+                moveudp(UDPManager.Instance.key3);
+                if (Input.GetKeyDown(KeyCode.Alpha4))
+                {
+                    ButtonPress(1);
+                }
+                if (Input.GetKeyUp(KeyCode.Alpha4))
+                {
+                    ButtonPress(0);
+                }
+                break;
+            case 4:
+                moveudp(UDPManager.Instance.key4);
+                if (Input.GetKeyDown(KeyCode.Alpha5))
+                {
+                    ButtonPress(1);
+                }
+                if (Input.GetKeyUp(KeyCode.Alpha5))
+                {
+                    ButtonPress(0);
+                }
+                break;
+            case 5:
+                moveudp(UDPManager.Instance.key5);
+                if (Input.GetKeyDown(KeyCode.Alpha6))
+                {
+                    ButtonPress(1);
+                }
+                if (Input.GetKeyUp(KeyCode.Alpha6))
+                {
+                    ButtonPress(0);
+                }
+                break;
+            case 6:
+                moveudp(UDPManager.Instance.key6);
+                if (Input.GetKeyDown(KeyCode.Alpha7))
+                {
+                    ButtonPress(1);
+                }
+                if (Input.GetKeyUp(KeyCode.Alpha7))
+                {
+                    ButtonPress(0);
+                }
+                break;
+            case 7:
+                moveudp(UDPManager.Instance.key7);
+                if (Input.GetKeyDown(KeyCode.Alpha8))
+                {
+                    ButtonPress(1);
+                }
+                if (Input.GetKeyUp(KeyCode.Alpha8))
+                {
+                    ButtonPress(0);
+                }
+                break;
+            case 8:
+                moveudp(UDPManager.Instance.key8);
+                if (Input.GetKeyDown(KeyCode.Alpha9))
+                {
+                    ButtonPress(1);
+                }
+                if (Input.GetKeyUp(KeyCode.Alpha9))
+                {
+                    ButtonPress(0);
+                }
+                break;
         }
-        else
-        {
-            switch (Number)
-            {
-                case 0:
-                    move(UDPManager.Instance.key);
-                    break;
-                case 1:
-                    move(UDPManager.Instance.key1);
-                    break;
-                case 2:
-                    move(UDPManager.Instance.key2);
-                    break;
-                case 3:
-                    move(UDPManager.Instance.key3);
-                    break;
-                case 4:
-                    move(UDPManager.Instance.key4);
-                    break;
-                case 5:
-                    move(UDPManager.Instance.key5);
-                    break;
-                case 6:
-                    move(UDPManager.Instance.key6);
-                    break;
-                case 7:
-                    move(UDPManager.Instance.key7);
-                    break;
-                case 8:
-                    move(UDPManager.Instance.key8);
-                    break;
-            }
-        }
+
     }
 }
 
